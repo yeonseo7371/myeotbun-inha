@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>몇분인하 — 지금, 몇 분인하?</title>
+<meta name="description" content="인하대 후문 밥집의 지금 줄과 대기 시간을 학우들의 제보로 보여주는 서비스, 몇분인하">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F8FB; --surface:#FFFFFF; --ink:#13203F; --ink2:#5F6B84; --line:#E3E8F0;
+  --blue:#1F4FB6; --blue-deep:#16398C; --blue-ink:#FFFFFF; --blue-soft:#E7EEFB;
+  --ok:#119467; --mid:#E39B0B; --busy:#DD4436;
+  --ok-soft:#DFF4EB; --mid-soft:#FCF0D5; --busy-soft:#FBE4E1;
+  --soft:0 1px 2px rgba(19,32,63,.04),0 10px 30px rgba(19,32,63,.07);
+  --glow:0 10px 26px rgba(31,79,182,.28);
+  --display:"Black Han Sans","Noto Sans KR",system-ui,sans-serif;
+  --body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1526; --surface:#162136; --ink:#E8EEF8; --ink2:#9AA8C0; --line:#263450;
+    --blue:#6E97F2; --blue-deep:#4F7BE0; --blue-ink:#0B1530; --blue-soft:#1E2D4F;
+    --ok:#2FBF87; --mid:#F0B23A; --busy:#F0675A;
+    --ok-soft:#173A2E; --mid-soft:#3A2F14; --busy-soft:#3D1F1D;
+    --soft:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3);
+    --glow:0 10px 26px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1526; --surface:#162136; --ink:#E8EEF8; --ink2:#9AA8C0; --line:#263450;
+  --blue:#6E97F2; --blue-deep:#4F7BE0; --blue-ink:#0B1530; --blue-soft:#1E2D4F;
+  --ok:#2FBF87; --mid:#F0B23A; --busy:#F0675A;
+  --ok-soft:#173A2E; --mid-soft:#3A2F14; --busy-soft:#3D1F1D;
+  --soft:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.3);
+  --glow:0 10px 26px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(76px + env(safe-area-inset-top,0px))}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;word-break:keep-all}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+a{color:inherit}
+h1,h2{font-family:var(--display);font-weight:400;letter-spacing:-.5px;line-height:1.28;margin:0}
+h3{margin:0;font-size:17px;font-weight:700}
+p{margin:0}
+.wrap{max-width:1020px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:13px;padding:14px 26px;font-weight:700;font-size:15.5px;text-decoration:none;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-fill{background:var(--blue);color:var(--blue-ink);box-shadow:var(--glow)}
+.btn-line{background:var(--surface);color:var(--ink);box-shadow:var(--soft)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:8px}
+.mut{color:var(--ink2)}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.brand{font-family:var(--display);font-size:23px;color:var(--blue);text-decoration:none;letter-spacing:-.5px}
+.nav nav{display:flex;gap:24px;font-size:14px;color:var(--ink2)}
+.nav nav a{text-decoration:none}
+.nav nav a:hover{color:var(--ink)}
+.nav .btn{margin-left:auto;padding:9px 18px;font-size:14px;border-radius:11px}
+@media (max-width:760px){ .nav nav{display:none} }
+
+/* hero */
+.hero{padding:76px 0 84px}
+.hero .wrap{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center}
+.kicker{display:inline-block;font-size:13.5px;font-weight:700;color:var(--blue);background:var(--blue-soft);border-radius:999px;padding:7px 15px}
+.hero h1{font-size:clamp(36px,5.2vw,56px);margin:20px 0 18px}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero .sub{color:var(--ink2);font-size:16.5px;max-width:29em;margin-bottom:30px}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.heroNote{font-size:12.5px;color:var(--ink2);margin-top:16px}
+
+/* phone */
+.phoneWrap{display:flex;justify-content:center;position:relative}
+.blob{position:absolute;inset:6% -4% 0;background:radial-gradient(62% 62% at 55% 38%,var(--blue-soft),transparent 72%);z-index:0}
+.phone{position:relative;z-index:1;width:294px;background:#101A33;border-radius:44px;padding:11px;box-shadow:0 34px 80px rgba(13,24,52,.32)}
+.screen{background:var(--surface);border-radius:34px;overflow:hidden}
+.pHead{display:flex;align-items:baseline;gap:8px;padding:15px 16px 8px}
+.pHead b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--blue)}
+.pHead span{font-size:10.5px;color:var(--ink2)}
+.pClock{margin-left:auto;font-family:var(--display);font-size:15px;font-variant-numeric:tabular-nums}
+.pMap{position:relative;height:244px;background:var(--bg)}
+.pMap svg{width:100%;height:100%;display:block}
+.mr{stroke:var(--surface);fill:none;stroke-linecap:round}
+.mc{fill:var(--blue-soft)}
+.mpin text{font-family:var(--display);font-size:12.5px}
+.mpin .nm{font-family:var(--body);font-size:8.5px;font-weight:700;fill:var(--ink2)}
+.pCard{padding:13px 16px 17px}
+.pCard .t{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700}
+.pBar{display:flex;height:16px;border-radius:6px;overflow:hidden;margin-top:9px;background:var(--bg)}
+.pBar span{height:100%;border-right:2px solid var(--surface)}
+.pCard .n{font-size:10.5px;color:var(--ink2);margin-top:8px}
+.s-walk{background:#7F8CA3}.s-wait{background:var(--busy)}.s-cook{background:var(--mid)}.s-eat{background:var(--blue)}.s-rest{background:var(--ok-soft);border-right:0!important}
+@media (max-width:860px){
+  .hero{padding:52px 0 64px}
+  .hero .wrap{grid-template-columns:1fr;gap:44px}
+  .phone{width:276px}
+}
+
+/* name strip */
+#name{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:76px 0}
+.lockup{text-align:center;margin-bottom:46px}
+.lockup .word{font-family:var(--display);font-size:clamp(52px,9vw,96px);line-height:1;letter-spacing:-2px}
+.lockup .word .a{color:var(--blue)}
+.lockup .q{margin-top:14px;font-size:17px;color:var(--ink2)}
+.lockup .q b{color:var(--ink)}
+.meanings{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:880px;margin:0 auto}
+.mean{background:var(--bg);border-radius:18px;padding:22px 22px 20px;text-align:left}
+.mean .no{font-family:var(--display);font-size:15px;color:var(--blue);display:block;margin-bottom:8px}
+.mean h3{font-size:16.5px;margin-bottom:6px}
+.mean p{font-size:14px;color:var(--ink2)}
+@media (max-width:760px){ .meanings{grid-template-columns:1fr} }
+
+/* sections */
+section{padding:92px 0}
+.secHead{max-width:33em;margin-bottom:44px}
+.secHead .eyebrow{font-size:14px;font-weight:700;color:var(--blue);display:block;margin-bottom:10px}
+.secHead h2{font-size:clamp(27px,3.4vw,38px)}
+.secHead p{color:var(--ink2);margin-top:14px}
+
+/* compare */
+.cmp{display:flex;flex-direction:column;gap:16px}
+.cmpRow{background:var(--surface);border-radius:20px;padding:22px 24px;box-shadow:var(--soft)}
+.cmpRow h3{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;font-size:16px}
+.cmpRow h3 .res{font-family:var(--display);font-weight:400;font-size:19px}
+.bigBar{display:flex;height:42px;border-radius:12px;overflow:hidden;background:var(--bg)}
+.bigBar span{height:100%;display:grid;place-items:center;font-size:11.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;border-right:3px solid var(--surface);width:0;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.bigBar .s-cook{color:#2a1d00}
+.bigBar .s-rest{color:var(--ok)}
+.bigBar .s-late{background:repeating-linear-gradient(135deg,var(--busy-soft),var(--busy-soft) 6px,transparent 6px,transparent 12px);color:var(--busy);border-right:0}
+.cmpRow .sub{font-size:13px;color:var(--ink2);margin-top:10px}
+.cmpFoot{font-size:15px;margin-top:8px}
+.cmpFoot b{font-family:var(--display);font-weight:400;font-size:21px;color:var(--ok)}
+
+/* features */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feat{background:var(--surface);border-radius:20px;padding:28px 26px;box-shadow:var(--soft)}
+.feat .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;margin-bottom:18px;background:var(--blue-soft)}
+.feat .ic svg{width:24px;height:24px;stroke:var(--blue)}
+.feat h3{margin-bottom:8px}
+.feat p{font-size:14px;color:var(--ink2)}
+@media (max-width:860px){ .feats{grid-template-columns:1fr} }
+
+/* how */
+#how ol{list-style:none;counter-reset:st;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+#how li{counter-increment:st;background:var(--surface);border-radius:20px;padding:28px 26px;box-shadow:var(--soft)}
+#how li::before{content:counter(st);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--blue);color:var(--blue-ink);font-family:var(--display);font-size:17px;margin-bottom:16px}
+#how h3{margin-bottom:8px}
+#how p{font-size:14px;color:var(--ink2)}
+@media (max-width:860px){ #how ol{grid-template-columns:1fr} }
+
+/* trust */
+#trust{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.trust{display:grid;grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
+.qa{display:flex;flex-direction:column;gap:12px}
+.qa div{background:var(--bg);border-radius:18px;padding:20px 22px}
+.qa b{display:block;margin-bottom:6px;font-size:15.5px}
+.qa p{font-size:14px;color:var(--ink2)}
+.stampCard{background:var(--bg);border-radius:22px;padding:26px;max-width:350px;justify-self:center;width:100%}
+.stampCard h3{font-size:17px}
+.stampCard .sub{font-size:13px;color:var(--ink2);margin:4px 0 18px}
+.sGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.sGrid i{aspect-ratio:1;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-style:normal;font-size:13.5px;color:var(--ink2);background:var(--surface)}
+.sGrid i.on{border:0;background:var(--blue);color:var(--blue-ink)}
+.sGrid i.gift{border-color:var(--mid);color:var(--mid);font-size:16px}
+.stampCard .cp{display:flex;align-items:center;gap:10px;border:1.5px dashed var(--mid);background:var(--mid-soft);border-radius:14px;padding:11px 15px;margin-top:18px;font-size:13.5px;font-weight:700}
+@media (max-width:860px){ .trust{grid-template-columns:1fr} }
+
+/* cta */
+#cta{padding:96px 0}
+.ctaBox{background:linear-gradient(135deg,var(--blue),var(--blue-deep));border-radius:28px;padding:64px 28px;text-align:center;box-shadow:var(--glow)}
+.ctaBox h2{font-size:clamp(26px,3.8vw,40px);color:#fff}
+.ctaBox p{color:rgba(255,255,255,.82);margin:14px auto 30px;max-width:30em}
+.ctaBox .btn{background:#fff;color:#1F4FB6}
+
+footer{padding:28px 0 60px;color:var(--ink2);font-size:13px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+  .bigBar span{width:var(--w)!important}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">몇분인하</a>
+    <nav><a href="#name">이름 이야기</a><a href="#compare">왜 필요한가</a><a href="#feats">기능</a><a href="#how">사용법</a><a href="#trust">제보와 리워드</a></nav>
+    <a class="btn btn-fill" href="./app/">시연 열기</a>
+  </div>
+</div>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <span class="kicker">인하대 후문 · 실시간 대기 정보</span>
+      <h1>오늘 점심,<br>줄 서다 <em>공강</em><br>끝나지 않게.</h1>
+      <p class="sub">몇분인하는 인하대 후문 밥집의 지금 줄과 대기 시간을 학우들의 제보로 모아 보여줍니다. 가기 전에 몇 분 기다릴지 확인하고, 내 공강 안에 다녀올 수 있는 곳만 골라 가세요.</p>
+      <div class="ctas">
+        <a class="btn btn-fill" href="./app/">시연 열어 보기</a>
+        <a class="btn btn-line" href="#how">사용법 보기</a>
+      </div>
+      <p class="heroNote">시연 화면의 줄 인원과 제보는 발표용 합성 데이터입니다.</p>
+    </div>
+    <div class="phoneWrap">
+      <div class="blob" aria-hidden="true"></div>
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <div class="pHead"><b>몇분인하</b><span>인하대 후문</span><span class="pClock" id="pClock">12:08</span></div>
+          <div class="pMap">
+            <svg viewBox="0 0 300 244">
+              <g class="mr"><path stroke-width="26" d="M-20 192 L320 246"/><path stroke-width="13" d="M-20 116 L320 62"/><path stroke-width="13" d="M30 206 L85 38"/><path stroke-width="13" d="M150 226 L205 58"/><path stroke-width="10" d="M60 157 L320 201"/><path stroke-width="10" d="M40 94 L320 147"/></g>
+              <circle class="mc" cx="248" cy="40" r="17"/><circle class="mc" cx="36" cy="60" r="13"/>
+              <g id="pPins"></g>
+            </svg>
+          </div>
+          <div class="pCard">
+            <div class="t"><span>공강 90분이면</span><span style="color:var(--ok)">32분 남아요</span></div>
+            <div class="pBar" id="pBar"></div>
+            <p class="n">이동, 줄, 조리, 식사, 복귀까지 넣어 계산했어요.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="name">
+  <div class="wrap">
+    <div class="lockup reveal">
+      <div class="word"><span class="a">몇분</span>인하</div>
+      <p class="q">친구에게 묻듯이 읽어 보세요. <b>"지금 몇 분인하?"</b> — 몇 분이나 기다려야 하는지 묻는 말이 그대로 이름이 됐습니다.</p>
+    </div>
+    <div class="meanings">
+      <div class="mean reveal"><span class="no">하나</span><h3>몇 분이나?</h3><p>"몇 분인하"를 소리 내어 읽으면 "몇 분이나 기다려?"가 됩니다. 이 서비스가 답하는 단 하나의 질문입니다.</p></div>
+      <div class="mean reveal"><span class="no">둘</span><h3>인하</h3><p>인하대학교 후문 골목에서 태어난, 인하인을 위한 서비스라는 뜻입니다.</p></div>
+      <div class="mean reveal"><span class="no">셋</span><h3>인하(引下)</h3><p>"값을 인하하다"의 그 인하. 기다리는 시간을 끌어내리겠다는 약속이기도 합니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="secHead reveal">
+      <span class="eyebrow">왜 필요한가</span>
+      <h2>수업 사이 1시간, 이렇게 달라집니다</h2>
+      <p>12시 수업이 끝나면 모두가 같은 골목으로 몰립니다. 어디 줄이 짧은지 모르고 나가면, 60분 공강은 밥 한 끼로도 모자랍니다.</p>
+    </div>
+    <div class="cmp">
+      <div class="cmpRow reveal">
+        <h3><span>모르고 인기 맛집으로 직행하면</span><span class="res" style="color:var(--busy)">70분 · 수업 10분 지각</span></h3>
+        <div class="bigBar" data-total="70">
+          <span class="s-walk" data-w="7">이동 7분</span><span class="s-wait" data-w="24">줄 서기 24분</span><span class="s-cook" data-w="12">조리 12분</span><span class="s-eat" data-w="20">식사 20분</span><span class="s-late" data-w="7">복귀 중 지각</span>
+        </div>
+        <p class="sub">12:05 도착 기준, 인기 밥집 앞 대기 24분. 60분 공강이 통째로 사라지는 흔한 점심 풍경입니다.</p>
+      </div>
+      <div class="cmpRow reveal">
+        <h3><span>몇분인하로 한가한 곳을 고르면</span><span class="res" style="color:var(--ok)">46분 · 14분이 남아요</span></h3>
+        <div class="bigBar" data-total="70">
+          <span class="s-walk" data-w="5">이동 5분</span><span class="s-wait" data-w="8">줄 8분</span><span class="s-cook" data-w="8">조리 8분</span><span class="s-eat" data-w="20">식사 20분</span><span class="s-walk" data-w="5">복귀 5분</span><span class="s-rest" data-w="14">남는 14분</span>
+        </div>
+        <p class="sub">같은 시각, 두 블록 옆 대기 8분 가게를 고른 경우입니다. 지각 없이 14분이 남습니다.</p>
+      </div>
+      <p class="cmpFoot reveal">점심 한 끼에서 <b>24분</b>을 돌려받습니다. 이름 그대로, 기다림을 인하(引下)하는 시간입니다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="feats">
+  <div class="wrap">
+    <div class="secHead reveal">
+      <span class="eyebrow">기능</span>
+      <h2>지도 한 장이면 충분합니다</h2>
+      <p>핀에 적힌 숫자가 그 집 앞에서 기다릴 시간입니다. 한식, 중식, 양식, 베트남, 퓨전까지 종류별로 걸러 볼 수 있습니다.</p>
+    </div>
+    <div class="feats">
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></div>
+        <h3>실시간 줄 지도</h3>
+        <p>후문 골목 밥집마다 지금 줄 선 인원과 예상 대기 시간이 핀으로 표시됩니다. 초록이면 바로 입장, 빨강이면 다른 집으로. 음식 종류별 필터로 원하는 메뉴만 볼 수 있습니다.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/></svg></div>
+        <h3>공강 계산기</h3>
+        <p>내 공강을 60, 75, 90, 120분 중에 고르면 이동, 줄, 조리, 식사 시간을 더해 늦지 않고 다녀올 수 있는지 가게마다 계산해 줍니다.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v4a8 8 0 0 1-16 0z"/><path d="M8 8c0-2 .8-3 2-4M13 8c0-2 .8-3 2-4"/></svg></div>
+        <h3>밥 나오는 시간까지</h3>
+        <p>주문 후 음식이 나오기까지 걸리는 평균 시간을 사장님께 직접 묻거나 학우 조사로 모아, 줄 길이와 함께 보여줍니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="secHead reveal">
+      <span class="eyebrow">사용법</span>
+      <h2>세 걸음이면 점심이 정해집니다</h2>
+      <p>수업이 끝나는 종이 울리기 전, 30초면 충분합니다.</p>
+    </div>
+    <ol>
+      <li class="reveal"><h3>지도를 엽니다</h3><p>강의실에서 나오기 전에 후문 골목 지도를 열고 핀 색을 훑어봅니다.</p></li>
+      <li class="reveal"><h3>공강에 맞는 집을 고릅니다</h3><p>"여유 있게 먹을 수 있어요"가 뜨는 집 중에서 당기는 메뉴로 정합니다.</p></li>
+      <li class="reveal"><h3>다녀와서 10초 제보합니다</h3><p>줄이 몇 명이었는지 숫자 하나만 남기면, 다음 학우가 그 덕을 봅니다.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section id="trust">
+  <div class="wrap">
+    <div class="secHead reveal">
+      <span class="eyebrow">제보와 리워드</span>
+      <h2>"아무도 제보 안 하면요?"</h2>
+      <p>가장 많이 받는 질문입니다. 세 겹으로 대비했습니다.</p>
+    </div>
+    <div class="trust">
+      <div class="qa reveal">
+        <div><b>제보가 끊겨도 지도는 비지 않습니다</b><p>최근 20분 안의 제보만 실시간으로 인정하고, 그보다 오래되면 시간대별 평소 줄 패턴으로 추정해 점선 핀으로 보여줍니다. 추정값인 걸 숨기지 않습니다.</p></div>
+        <div><b>제보할 이유를 만듭니다</b><p>제보 한 번에 스탬프 하나, 열 번이면 후문 제휴 카페 아메리카노 쿠폰입니다. 어차피 줄 서 있는 10초면 됩니다.</p></div>
+        <div><b>장난 제보는 거릅니다</b><p>가게 근처에 있을 때만 제보할 수 있게 위치를 확인하고, 같은 가게는 10분에 한 번만 받습니다. 여러 제보가 겹치면 최신 값을 우선합니다.</p></div>
+      </div>
+      <div class="stampCard reveal" aria-hidden="true">
+        <h3>제보 스탬프</h3>
+        <p class="sub">커피 쿠폰까지 3번 남았어요</p>
+        <div class="sGrid"><i class="on">인하</i><i class="on">인하</i><i class="on">인하</i><i class="on">인하</i><i class="on">인하</i><i class="on">인하</i><i class="on">인하</i><i>8</i><i>9</i><i class="gift">☕</i></div>
+        <div class="cp"><span style="font-size:20px">☕</span>제휴 카페 아메리카노 1잔</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="wrap">
+    <div class="ctaBox reveal">
+      <h2>지금, 몇 분인하?</h2>
+      <p>시연 화면에서 시간을 11시 반에 놓고 재생해 보세요. 12시 종이 울리고 골목이 붉게 물드는 과정이 그대로 보입니다.</p>
+      <a class="btn" href="./app/">몇분인하 시연 열기</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>몇분인하 · 인하대 점심 대기 정보 서비스 (학생 팀 프로젝트)</span>
+    <span>화면 속 줄 인원과 제보는 발표용 합성 데이터입니다.</span>
+  </div>
+</footer>
+
+<script>
+const pins=[{x:88,y:90,n:'분식'},{x:170,y:118,n:'마라탕'},{x:120,y:172,n:'국밥'},{x:222,y:148,n:'돈까스'}];
+let vals=[4,21,9,13];
+const lv=w=>w<=5?'var(--ok)':w<=15?'var(--mid)':'var(--busy)';
+const fg=w=>w>5&&w<=15?'#2a1d00':'#fff';
+function drawPins(){
+  document.getElementById('pPins').innerHTML=pins.map((p,i)=>`<g class="mpin" transform="translate(${p.x} ${p.y})">
+    <path d="M-21 -36 h42 a7 7 0 0 1 7 7 v12 a7 7 0 0 1 -7 7 h-16 l-5 6 l-5 -6 h-16 a7 7 0 0 1 -7 -7 v-12 a7 7 0 0 1 7 -7z" fill="${lv(vals[i])}" style="filter:drop-shadow(0 2px 2px rgba(12,22,46,.28))"/>
+    <text y="-18" text-anchor="middle" fill="${fg(vals[i])}">${vals[i]}분</text>
+    <circle r="2.5" fill="var(--ink)"/><text class="nm" y="12" text-anchor="middle">${p.n}</text></g>`).join('');
+}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let t=728;
+function tick(){
+  vals=vals.map((v,i)=>Math.max(2,Math.min(28,v+Math.round(Math.random()*4-2+(i===1?0.4:0)))));
+  t=t>=750?722:t+1;
+  document.getElementById('pClock').textContent=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
+  drawPins();
+}
+drawPins();
+if(!reduce) setInterval(tick,1800);
+
+const segs=[['walk',5],['wait',8],['cook',8],['eat',20],['walk',5],['rest',32]];
+document.getElementById('pBar').innerHTML=segs.map(([c,w])=>`<span class="s-${c}" style="width:${w/78*100}%"></span>`).join('');
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting) return;
+  e.target.classList.add('in');
+  e.target.querySelectorAll('.bigBar span').forEach(sp=>{
+    const total=+sp.closest('.bigBar').dataset.total;
+    const w=(+sp.dataset.w/total*100)+'%';
+    sp.style.setProperty('--w',w);
+    requestAnimationFrame(()=>{ sp.style.width=w; });
+  });
+  io.unobserve(e.target);
+}),{threshold:0.25});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+if(reduce) document.querySelectorAll('.bigBar span').forEach(sp=>{ sp.style.width=(+sp.dataset.w/+sp.closest('.bigBar').dataset.total*100)+'%'; });
+</script>
+</body>
+</html>
